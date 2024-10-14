@@ -1,0 +1,226 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        #page{
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-around;
+            
+        }
+        #chart-container, iframe{
+            width: 90vw;
+            height: 45vh;
+        }
+        
+
+    </style>
+</head>
+<body>
+<div id="page">
+    <div id="chart-container"></div>
+    <iframe></iframe>
+</div>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/x-data-spreadsheet@1.1.9/dist/xspreadsheet.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+
+    <script>
+
+
+const whiskerPlugin = 
+{
+    whiskerTops: [],
+    whiskerBottoms: [],
+    getStats: function(values)
+    {
+        var mean = values.reduce((a,b)=>a+b, 0)/values.length;
+        var standardDeviation = Math.sqrt( values.map(o=>(o-mean)*(o-mean)).reduce((a,b)=>a+b, 0) / (values.length - 1) );
+        var student95 = [6.314, 2.920, 2.353, 2.132, 2.015, 1.943, 1.895, 1.860, 1.833, 1.812];
+        var studentDelta = standardDeviation * student95[values.length - 2]/ Math.sqrt(values.length)
+        return {mean, standardDeviation, studentDelta}
+    },
+    
+
+    beforeUpdate: function(chart)
+    {
+
+        this.whiskerTops = [];
+        this.whiskerBottoms = [];
+        
+        if(chart.data.labels.length > 0)
+        {
+            let data = [];
+            chart.data.labels = chart.data.labels;
+            for(let n of chart.data.datasets[0].data)
+            {
+                if(n.length)
+                {
+                    let {mean, standardDeviation, studentDelta} = this.getStats(n);
+                    data.push(mean);
+                    this.whiskerTops.push(mean + standardDeviation);
+                    this.whiskerBottoms.push(mean - standardDeviation);
+                }
+                else{
+                    data.push(n);
+                    this.whiskerTops.push(undefined);
+                    this.whiskerBottoms.push(undefined);
+                }
+            }
+            chart.data.datasets[0].data = data;          
+        }
+        
+    },
+
+    beforeLayout: function(chart)
+    {
+        
+    },
+    afterDraw: function(chart)
+    {
+        var {ctx,scales} = chart;
+        draw(this.whiskerBottoms,this.whiskerTops);
+        function draw(values1, values2)
+        {
+            for(let i=0; i<values1.length; i++)
+            {
+                let x = scales.x.left + (i + 0.5)*scales.x.width/values1.length;
+
+                let y1 = scales.y.bottom - scales.y.height*values1[i]/scales.y.max;
+                let y2 = scales.y.bottom - scales.y.height* values2[i]/scales.y.max;
+                ctx.strokeStyle = "black"
+                ctx.beginPath();
+                ctx.moveTo(x-5, y1);
+                ctx.lineTo(x+5, y1);
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.moveTo(x-5, y2);
+                ctx.lineTo(x+5, y2);
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.moveTo(x,y1);
+                ctx.lineTo(x,y2);
+                ctx.stroke();
+        
+            }
+            
+        }
+        
+    }
+}
+
+        var chartContainer = document.querySelector("#chart-container");
+        var iframe = document.querySelector("iframe");
+
+        var link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = "https://cdn.jsdelivr.net/npm/x-data-spreadsheet@1.1.9/dist/xspreadsheet.min.css";
+        iframe.contentDocument.head.append(link);
+
+        var spreadsheet = x_spreadsheet(iframe.contentDocument.body);
+        spreadsheet.on("change", updateChart);
+        spreadsheet.data.addStyle({color:"white",bgcolor:"blue",align:"center"});
+        spreadsheet.data.addStyle({bgcolor:"rgb(200,200,255)",align:"right"});
+
+        var canvas = document.createElement("canvas");
+        chartContainer.append(canvas);
+        var chart = new Chart(canvas,{
+            type: 'bar',
+            data: {
+                labels:[],
+                datasets:[
+                    {data:[]}
+                ]
+            },
+            options:{
+                scales: {
+                    y: {
+                            min:0
+                    }
+                },
+                plugins: { legend: {display:false} }
+            },
+
+            plugins: [whiskerPlugin]
+
+        })
+
+
+        function updateChart(sheet)
+        {
+            var tableHeight = Math.max(0,...Object.keys(sheet.rows).map(Number).filter(o=>o))+1;
+            var tableWidth = 0;
+            for(let i=0; i<tableHeight; i++)
+            {
+                rowWidth = Math.max(0,...Object.keys(sheet.rows[i]?.cells || {}).map(Number))+1;
+                tableWidth = Math.max(tableWidth,rowWidth);               
+            }
+
+            for(let i=0; i<tableWidth; i++)
+            {
+                spreadsheet.data.rows.setCell(0,i,{style:0, text:sheet.rows[0]?.cells[i]?.text || `Column ${i+1}`});
+                for(let j=1; j<tableHeight; j++)
+                {
+                    spreadsheet.data.rows.setCell(j,i,{style:1, text:sheet.rows[j]?.cells[i]?.text || "0"});
+                }
+            }
+
+            var headerCells = sheet.rows[0]?.cells || {};
+            var labels = [];
+            for(let i=0; i<tableWidth; i++)
+            {
+                labels.push(headerCells[i]? headerCells[i]?.text : "");
+            }
+
+            chart.data.labels = labels;
+
+           
+            chart.data.datasets[0].data = [];
+            let max = 0;
+            for(let i=0; i<tableWidth; i++)
+            {
+                let arr = [];
+
+                for(let j=1; j<tableHeight; j++)
+                {
+                    
+                    arr.push(Number(sheet.rows[j]?.cells[i]?.text) || 0);
+                }
+
+                chart.data.datasets[0].data.push(arr);
+
+                let stats = whiskerPlugin.getStats(arr);
+
+                max = Math.max(max, stats.mean+stats.standardDeviation);   
+            }
+
+            chart.options.scales.y.max = 1.1*max;
+
+            
+            chart.update();
+
+
+
+
+
+           
+
+        }
+
+
+
+
+
+    </script>
+</body>
+</html>
