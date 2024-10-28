@@ -35,7 +35,7 @@ var chart = new Chart(canvas,{
 
 })
 
-var boxWhiskerPlot = createPlot({});
+var boxWhiskerPlot = createPlot({}, innerWidth-100, 0.45*innerHeight);
 chartContainer.append(boxWhiskerPlot.element);
 
 

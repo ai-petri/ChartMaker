@@ -1,16 +1,18 @@
-function createPlot(obj)
+function createPlot(obj, width=800, height=400)
 {
+    this.obj = obj;
     let canvas = document.createElement("canvas");
-    canvas.width = 800;
-    canvas.height = 400;
+    canvas.width = width;
+    canvas.height = height;
     let ctx = canvas.getContext("2d");
-    let border = 100;
+    let border = 0.2*height;
     let w = canvas.width - 2*border;
     let h = canvas.height - 2*border;
-    ctx.font = "20px Arial"
+    ctx.font = `${Math.round(0.3*border)}px Arial`;
 
     this.update = function(obj)
     {
+        this.obj = obj;
         ctx.clearRect(0,0,canvas.width,canvas.height);
         ctx.rect(border,border,w,h);
         ctx.stroke();
@@ -69,6 +71,17 @@ function createPlot(obj)
             ctx.fillText(key,X(current_x),canvas.height - border + 35);
             current_x += offset;
         }
+    }
+
+    this.resize = function(width, height)
+    {
+        canvas.width = width;
+        canvas.height = height;
+        w = canvas.width - 2*border;
+        h = canvas.height - 2*border;
+        border = 0.2*height;
+        ctx.font = `${Math.round(0.3*border)}px Arial`;
+        this.update(this.obj);
     }
 
     this.element = canvas;
