@@ -35,8 +35,11 @@ var chart = new Chart(canvas,{
 
 })
 
+var boxWhiskerPlot = createPlot({});
+chartContainer.append(boxWhiskerPlot);
 
-var tabSelect = createTabs({bar:canvas});
+
+var tabSelect = createTabs({"bar":canvas, "box-whisker": boxWhiskerPlot});
 document.querySelector("#tab-select-container").append(tabSelect)
 
 function updateChart(sheet)
