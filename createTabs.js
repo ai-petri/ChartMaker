@@ -20,10 +20,12 @@ function createTabs(obj)
             if(key == name)
             {
                 obj[key].style.visibility = "visible";
+                obj[key].style.height = "unset";
             }
             else
             {
                 obj[key].style.visibility = "hidden";
+                obj[key].style.height = "0";
             }
         }
     }
