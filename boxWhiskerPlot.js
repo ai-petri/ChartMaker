@@ -8,67 +8,77 @@ function createPlot(obj)
     let w = canvas.width - 2*border;
     let h = canvas.height - 2*border;
     ctx.font = "20px Arial"
-    ctx.rect(border,border,w,h);
-    ctx.stroke();
-    let min_x = 0;
-    let max_x = 100;
-    let min_y = 0;
-    let max_y = 1.2 * Math.max(...Object.values(obj).flat());
-    let X = x => w * x/(max_x - min_x) + border;
-    let Y =  y => h * (1 - y/(max_y - min_y)) + border;
-    ctx.textAlign = "right"
-    ctx.fillText(min_y.toFixed(1),border-10,Y(min_y));
-    ctx.fillText(max_y.toFixed(1), border-10, Y(max_y));
-    
-    let offset = (max_x-min_x)/(Object.keys(obj).length + 1);
-    let current_x = offset;
-    for(let key in obj)
+
+    this.update = function(obj)
     {
-        let {min,max,mean,median,Q1,Q3} = getStats(obj[key]);
-        //top whisker
-        ctx.beginPath();
-        ctx.moveTo(X(current_x)-5,Y(max));
-        ctx.lineTo(X(current_x)+5,Y(max));
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        ctx.rect(border,border,w,h);
         ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(X(current_x),Y(max));
-        ctx.lineTo(X(current_x),Y(Q3));
-        ctx.stroke();
-        //box
-        ctx.beginPath();
-        ctx.rect(X(current_x)-20,Y(Q3),40,Y(Q1)-Y(Q3));
-        ctx.stroke();
-        //median
-        ctx.beginPath();
-        ctx.moveTo(X(current_x)-20,Y(median));
-        ctx.lineTo(X(current_x)+20,Y(median));
-        ctx.stroke();
-        //mean
-        ctx.beginPath();
-        ctx.moveTo(X(current_x)-5,Y(mean)-5);
-        ctx.lineTo(X(current_x)+5,Y(mean)+5);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(X(current_x)-5,Y(mean)+5);
-        ctx.lineTo(X(current_x)+5,Y(mean)-5);
-        ctx.stroke();
-        //bottom whisker
-        ctx.beginPath();
-        ctx.moveTo(X(current_x),Y(Q1));
-        ctx.lineTo(X(current_x),Y(min));
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(X(current_x)-5,Y(min));
-        ctx.lineTo(X(current_x)+5,Y(min));
-        ctx.stroke();
-        ctx.textAlign = "center";
-        ctx.fillText(key,X(current_x),canvas.height - border + 35);
-        current_x += offset;
+        let min_x = 0;
+        let max_x = 100;
+        let min_y = 0;
+        let max_y = 1.2 * Math.max(...Object.values(obj).flat());
+        let X = x => w * x/(max_x - min_x) + border;
+        let Y =  y => h * (1 - y/(max_y - min_y)) + border;
+        ctx.textAlign = "right"
+        ctx.fillText(min_y.toFixed(1),border-10,Y(min_y));
+        ctx.fillText(max_y.toFixed(1), border-10, Y(max_y));
+        
+        let offset = (max_x-min_x)/(Object.keys(obj).length + 1);
+        let current_x = offset;
+        for(let key in obj)
+        {
+            let {min,max,mean,median,Q1,Q3} = getStats(obj[key]);
+            //top whisker
+            ctx.beginPath();
+            ctx.moveTo(X(current_x)-5,Y(max));
+            ctx.lineTo(X(current_x)+5,Y(max));
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(X(current_x),Y(max));
+            ctx.lineTo(X(current_x),Y(Q3));
+            ctx.stroke();
+            //box
+            ctx.beginPath();
+            ctx.rect(X(current_x)-20,Y(Q3),40,Y(Q1)-Y(Q3));
+            ctx.stroke();
+            //median
+            ctx.beginPath();
+            ctx.moveTo(X(current_x)-20,Y(median));
+            ctx.lineTo(X(current_x)+20,Y(median));
+            ctx.stroke();
+            //mean
+            ctx.beginPath();
+            ctx.moveTo(X(current_x)-5,Y(mean)-5);
+            ctx.lineTo(X(current_x)+5,Y(mean)+5);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(X(current_x)-5,Y(mean)+5);
+            ctx.lineTo(X(current_x)+5,Y(mean)-5);
+            ctx.stroke();
+            //bottom whisker
+            ctx.beginPath();
+            ctx.moveTo(X(current_x),Y(Q1));
+            ctx.lineTo(X(current_x),Y(min));
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(X(current_x)-5,Y(min));
+            ctx.lineTo(X(current_x)+5,Y(min));
+            ctx.stroke();
+            ctx.textAlign = "center";
+            ctx.fillText(key,X(current_x),canvas.height - border + 35);
+            current_x += offset;
+        }
     }
+
+    this.element = canvas;
+
+    this.update(obj);
     
-    return canvas;
+    return this;
     
 }
+
 function getStats(arr)
 {
     var min = Math.min(...arr);

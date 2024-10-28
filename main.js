@@ -36,10 +36,10 @@ var chart = new Chart(canvas,{
 })
 
 var boxWhiskerPlot = createPlot({});
-chartContainer.append(boxWhiskerPlot);
+chartContainer.append(boxWhiskerPlot.element);
 
 
-var tabSelect = createTabs({"bar":canvas, "box-whisker": boxWhiskerPlot});
+var tabSelect = createTabs({"bar":canvas, "box-whisker": boxWhiskerPlot.element});
 document.querySelector("#tab-select-container").append(tabSelect)
 
 function updateChart(sheet)
