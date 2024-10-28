@@ -73,6 +73,7 @@ function updateChart(sheet)
    
     chart.data.datasets[0].data = [];
     let max = 0;
+    let obj = {};
     for(let i=0; i<tableWidth; i++)
     {
         let arr = [];
@@ -84,6 +85,7 @@ function updateChart(sheet)
         }
 
         chart.data.datasets[0].data.push(arr);
+        obj[labels[i]] = arr;
 
         let stats = whiskerPlugin.getStats(arr);
 
@@ -96,10 +98,7 @@ function updateChart(sheet)
     chart.update();
 
 
-
-
-
-   
+    boxWhiskerPlot.update(obj);
 
 }
 
