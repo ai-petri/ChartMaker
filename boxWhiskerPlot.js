@@ -2,7 +2,7 @@ function createPlot(obj)
 {
     let canvas = document.createElement("canvas");
     canvas.width = 800;
-    canvas.height = 600;
+    canvas.height = 400;
     let ctx = canvas.getContext("2d");
     let border = 100;
     let w = canvas.width - 2*border;
