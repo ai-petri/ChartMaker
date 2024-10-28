@@ -36,6 +36,9 @@ var chart = new Chart(canvas,{
 })
 
 
+var tabSelect = createTabs({bar:canvas});
+document.querySelector("#tab-select-container").append(tabSelect)
+
 function updateChart(sheet)
 {
     var tableHeight = Math.max(0,...Object.keys(sheet.rows).map(Number).filter(o=>o))+1;
